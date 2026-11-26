@@ -3,8 +3,8 @@
   const COINS = ["USDT", "USDC", "BTC", "ETH", "SOL"];
   const CATS = ["restaurante", "hotel", "mercado", "eletrônicos", "compras", "saúde", "serviços", "produtos online", "serviços digitais", "câmbio / P2P", "caixa eletrônico"];
   const isAtm = (p) => p.cat === "caixa eletrônico";
-  // tipo do cadastro: comércio físico (padrão), pessoa/autônomo ou loja/produto online
-  const TYPE_LABEL = { pessoa: "Pessoa", online: "Online" };
+  // tipo do cadastro: comércio físico (padrão) ou loja/produto online
+  const TYPE_LABEL = { online: "Online" };
   const ptype = (p) => p.type || "fisico";
   const hasPos = (p) => p.lat != null && p.lng != null; // lugares online não têm posição no mapa
   const CITY = Object.fromEntries(CITIES.map((c) => [c.name, c]));
@@ -105,8 +105,8 @@
     $("#listCount").textContent = list.length > MAX ? `${MAX} de ${list.length}` : list.length;
     $("#list").innerHTML = list.slice(0, MAX).map((p) =>`<div class="item" data-id="${p.id}">
       <b>${esc(p.name)}</b><span class="meta">${esc(p.cat)} · ${esc(p.city)}${p.verified ? ' · <span class="ok">✔</span>' : ""}</span>
-      <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}${vids(p).length ? `<span class="tag vtag">▶ ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""}</span>` : ""}</div></div>`).join("") || (state.type === "pessoa" || state.type === "online"
-      ? `<p class="muted">Ainda não há ${state.type === "pessoa" ? "pessoas" : "lojas online"} cadastradas aqui. Seja o primeiro: toque em Cadastrar.</p>`
+      <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}${vids(p).length ? `<span class="tag vtag">▶ ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""}</span>` : ""}</div></div>`).join("") || (state.type === "online"
+      ? `<p class="muted">Ainda não há lojas online cadastradas aqui. Seja o primeiro: toque em Cadastrar.</p>`
       : '<p class="muted">Nenhum lugar encontrado com esses filtros.</p>');
     stats(); crumbs();
   }
@@ -278,7 +278,7 @@
       addr: online ? null : String(f.get("addr") || "").trim().slice(0, 200) || null,
       coins: f.getAll("coin"), wa: String(f.get("wa") || "").trim().slice(0, 30) || null,
       web: String(f.get("web") || "").trim().slice(0, 200) || null,
-      // física e pessoa: posição do centro da cidade, corrigida na revisão; online: sem posição
+      // física: posição do centro da cidade, corrigida na revisão; online: sem posição
       lat: online ? null : city.lat, lng: online ? null : city.lng,
       note: online ? "Cadastro online enviado pela comunidade." : "Cadastro enviado pela comunidade. Posição a confirmar.",
     };
