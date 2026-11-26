@@ -1,5 +1,6 @@
 (function () {
   const $ = (s) => document.querySelector(s);
+  const ic = (n) => `<svg class="ic"><use href="#i-${n}"/></svg>`; // ícones SVG do sprite no index.html
   const COINS = ["USDT", "USDC", "BTC", "ETH", "SOL"];
   const CATS = ["restaurante", "hotel", "mercado", "eletrônicos", "compras", "saúde", "serviços", "produtos online", "serviços digitais", "câmbio / P2P", "caixa eletrônico"];
   const isAtm = (p) => p.cat === "caixa eletrônico";
@@ -48,7 +49,7 @@
   const vidsHtml = (p) => {
     const list = vids(p); if (!list.length) return "";
     return `<div class="vids"><b>Vídeos pagando com cripto</b>${list.map((v) => `<button class="vid" data-id="${v.id}">
-      <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><span class="play">▶</span>
+      <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"><span class="play">${ic("play")}</span>
       <span class="vt">${esc(v.title || "Ver vídeo")}${v.channel ? `<small>${esc(v.channel)}</small>` : ""}</span></button>`).join("")}</div>`;
   };
   document.addEventListener("click", (e) => {
@@ -69,8 +70,8 @@
     <div class="muted">${esc(p.cat)} · ${esc(p.city)}</div>
     <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}</div>
     ${p.nets && p.nets.length ? `<div class="muted">Redes: ${esc(p.nets.join(", "))}</div>` : ""}
-    <div style="margin-top:6px">${p.verified ? '<span class="ok">✔ Verificado</span>' : '<span class="muted">Não verificado</span>'}</div>
-    ${vids(p).length ? `<div style="margin-top:6px"><span class="tag vtag">▶ ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""} na ficha</span></div>` : ""}
+    <div style="margin-top:6px">${p.verified ? '<span class="ok">' + ic("check") + ' Verificado</span>' : '<span class="muted">Não verificado</span>'}</div>
+    ${vids(p).length ? `<div style="margin-top:6px"><span class="tag vtag">${ic("play")} ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""} na ficha</span></div>` : ""}
     ${p.addr ? `<div class="muted" style="margin-top:6px">${esc(p.addr)}</div>` : ""}
     ${p.web ? `<div style="margin-top:6px"><a href="${esc(p.web)}" target="_blank" rel="noopener noreferrer">Site</a></div>` : ""}
     ${p.note ? `<div style="margin-top:6px;font-size:12px">${esc(p.note)}</div>` : ""}
@@ -104,8 +105,8 @@
     const MAX = 150; // lista curta: com milhares de lugares, use a busca ou aproxime o mapa
     $("#listCount").textContent = list.length > MAX ? `${MAX} de ${list.length}` : list.length;
     $("#list").innerHTML = list.slice(0, MAX).map((p) =>`<div class="item" data-id="${p.id}">
-      <b>${esc(p.name)}</b><span class="meta">${esc(p.cat)} · ${esc(p.city)}${p.verified ? ' · <span class="ok">✔</span>' : ""}</span>
-      <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}${vids(p).length ? `<span class="tag vtag">▶ ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""}</span>` : ""}</div></div>`).join("") || (state.type === "online"
+      <b>${esc(p.name)}</b><span class="meta">${esc(p.cat)} · ${esc(p.city)}${p.verified ? ' · <span class="ok">' + ic("check") + '</span>' : ""}</span>
+      <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}${vids(p).length ? `<span class="tag vtag">${ic("play")} ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""}</span>` : ""}</div></div>`).join("") || (state.type === "online"
       ? `<p class="muted">Ainda não há lojas online cadastradas aqui. Seja o primeiro: toque em Cadastrar.</p>`
       : '<p class="muted">Nenhum lugar encontrado com esses filtros.</p>');
     stats(); crumbs();
@@ -133,7 +134,7 @@
       <div class="muted">${esc(p.cat)} · ${esc(p.city)}</div>
       <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}</div>
       <dl><dt>Redes</dt><dd>${esc((p.nets || []).join(", ") || "—")}</dd>
-      <dt>Status</dt><dd>${p.verified ? '<span class="ok">✔ Verificado</span>' : "Não verificado"}</dd>
+      <dt>Status</dt><dd>${p.verified ? '<span class="ok">' + ic("check") + ' Verificado</span>' : "Não verificado"}</dd>
       ${p.addr ? `<dt>Onde fica</dt><dd>${esc(p.addr)}${p.approx ? ' <span class="muted">(posição aproximada)</span>' : ""}</dd>` : ""}
       ${p.web ? `<dt>Site</dt><dd><a href="${esc(p.web)}" target="_blank" rel="noopener noreferrer">${esc(p.web.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a></dd>` : ""}
       ${p.note ? `<dt>Moedas</dt><dd>${esc(p.note)}</dd>` : ""}
@@ -191,7 +192,7 @@
     state.city = ""; state.q = v; render();
     const m = v ? CITIES.filter((c) => c.name.toLowerCase().includes(v)).slice(0, 5) : []; // busca em Brasil e Paraguai
     $("#sugg").hidden = !m.length;
-    $("#sugg").innerHTML = m.map((c) => `<button data-n="${esc(c.name)}">📍 ${esc(c.name)}</button>`).join("");
+    $("#sugg").innerHTML = m.map((c) => `<button data-n="${esc(c.name)}">${ic("pin")} ${esc(c.name)}</button>`).join("");
   });
   $("#sugg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) pickCity(b.dataset.n); });
   $("#q").addEventListener("keydown", (e) => {
@@ -238,7 +239,7 @@
 
   // ---- theme / lang / share
   const themeBtn = $("#btnTheme");
-  const syncTheme = () => (themeBtn.textContent = document.documentElement.dataset.theme === "light" ? "☀" : "☾");
+  const syncTheme = () => (themeBtn.innerHTML = ic(document.documentElement.dataset.theme === "light" ? "sun" : "moon"));
   syncTheme();
   themeBtn.onclick = () => {
     const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";

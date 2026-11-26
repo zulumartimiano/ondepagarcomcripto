@@ -237,3 +237,11 @@ h1{font-size:20px;margin:0 0 5px}
 .types{align-self:stretch}
 .types button{flex:1;padding:6px 8px;font-size:13px}
 .typetag{border-color:var(--muted);color:var(--text)}
+
+/* ícones SVG (traço único, herdam a cor do texto) */
+.ic{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.logo .ic{width:26px;height:26px;vertical-align:middle;color:var(--usdt)}
+.icon .ic{width:18px;height:18px;vertical-align:middle}
+.play .ic{width:14px;height:14px;vertical-align:middle}
+.help-card .ic{color:#fff;fill:#fff;stroke:none}
+.how .ic{width:14px;height:14px}
