@@ -232,3 +232,8 @@ h1{font-size:20px;margin:0 0 5px}
 /* aviso dos lugares só com Bitcoin */
 .hint{background:#f7931a;color:#1d1200;border:0;border-radius:999px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer}
 .hint:hover{filter:brightness(1.08)}
+
+/* tipo do cadastro: comércios, pessoas, online */
+.types{align-self:stretch}
+.types button{flex:1;padding:6px 8px;font-size:13px}
+.typetag{border-color:var(--muted);color:var(--text)}

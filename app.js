@@ -1,11 +1,15 @@
 (function () {
   const $ = (s) => document.querySelector(s);
   const COINS = ["USDT", "USDC", "BTC", "ETH", "SOL"];
-  const CATS = ["restaurante", "hotel", "mercado", "eletrônicos", "compras", "saúde", "serviços", "caixa eletrônico"];
+  const CATS = ["restaurante", "hotel", "mercado", "eletrônicos", "compras", "saúde", "serviços", "produtos online", "serviços digitais", "câmbio / P2P", "caixa eletrônico"];
   const isAtm = (p) => p.cat === "caixa eletrônico";
+  // tipo do cadastro: comércio físico (padrão), pessoa/autônomo ou loja/produto online
+  const TYPE_LABEL = { pessoa: "Pessoa", online: "Online" };
+  const ptype = (p) => p.type || "fisico";
+  const hasPos = (p) => p.lat != null && p.lng != null; // lugares online não têm posição no mapa
   const CITY = Object.fromEntries(CITIES.map((c) => [c.name, c]));
   // sem nenhuma moeda marcada o mapa mostra todos os lugares; marcar uma moeda filtra
-  const state = { coins: new Set(), cat: "", q: "", city: "", country: "py" };
+  const state = { coins: new Set(), cat: "", q: "", city: "", country: "py", type: "" };
   let places = PLACES.slice();
   const SB = window.SUPABASE || {};
   const sbOn = () => !!(SB.url && SB.key);
@@ -63,7 +67,7 @@
   vm.addEventListener("click", (e) => { if (e.target === vm) closeV(); });
   const popup = (p) => `<div class="pop"><h4>${esc(p.name)}</h4>
     <div class="muted">${esc(p.cat)} · ${esc(p.city)}</div>
-    <div class="coins">${tags(p)}</div>
+    <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}</div>
     ${p.nets && p.nets.length ? `<div class="muted">Redes: ${esc(p.nets.join(", "))}</div>` : ""}
     <div style="margin-top:6px">${p.verified ? '<span class="ok">✔ Verificado</span>' : '<span class="muted">Não verificado</span>'}</div>
     ${vids(p).length ? `<div style="margin-top:6px"><span class="tag vtag">▶ ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""} na ficha</span></div>` : ""}
@@ -78,6 +82,7 @@
     const q = state.q.trim().toLowerCase();
     return places.filter((p) =>
       pc(p) === state.country &&
+      (!state.type || ptype(p) === state.type) &&
       (!state.coins.size || isAtm(p) || p.coins.some((c) => state.coins.has(c))) && // caixas eletrônicos aparecem sempre
       (!state.cat || p.cat === state.cat) &&
       (!state.city || p.city === state.city) &&
@@ -90,6 +95,7 @@
     const list = filtered();
     layer.clearLayers(); markers.clear();
     list.forEach((p) => {
+      if (!hasPos(p)) return; // online: só na lista
       const m = L.marker([p.lat, p.lng], {
         icon: L.divIcon({ className: "", html: `<div class="pt ${kind(p)}${isAtm(p) ? " atm" : ""}"></div>`, iconSize: [16, 16] }),
       }).bindPopup(popup(p));
@@ -99,7 +105,9 @@
     $("#listCount").textContent = list.length > MAX ? `${MAX} de ${list.length}` : list.length;
     $("#list").innerHTML = list.slice(0, MAX).map((p) =>`<div class="item" data-id="${p.id}">
       <b>${esc(p.name)}</b><span class="meta">${esc(p.cat)} · ${esc(p.city)}${p.verified ? ' · <span class="ok">✔</span>' : ""}</span>
-      <div class="coins">${tags(p)}${vids(p).length ? `<span class="tag vtag">▶ ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""}</span>` : ""}</div></div>`).join("") || '<p class="muted">Nenhum lugar encontrado com esses filtros.</p>';
+      <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}${vids(p).length ? `<span class="tag vtag">▶ ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""}</span>` : ""}</div></div>`).join("") || (state.type === "pessoa" || state.type === "online"
+      ? `<p class="muted">Ainda não há ${state.type === "pessoa" ? "pessoas" : "lojas online"} cadastradas aqui. Seja o primeiro: toque em Cadastrar.</p>`
+      : '<p class="muted">Nenhum lugar encontrado com esses filtros.</p>');
     stats(); crumbs();
   }
 
@@ -123,7 +131,7 @@
     el.innerHTML = `<button class="back" id="back">‹ ${esc(p.city)}</button>
       <h2>${esc(p.name)}</h2>
       <div class="muted">${esc(p.cat)} · ${esc(p.city)}</div>
-      <div class="coins">${tags(p)}</div>
+      <div class="coins">${tags(p)}${TYPE_LABEL[ptype(p)] ? `<span class="tag typetag">${TYPE_LABEL[ptype(p)]}</span>` : ""}</div>
       <dl><dt>Redes</dt><dd>${esc((p.nets || []).join(", ") || "—")}</dd>
       <dt>Status</dt><dd>${p.verified ? '<span class="ok">✔ Verificado</span>' : "Não verificado"}</dd>
       ${p.addr ? `<dt>Onde fica</dt><dd>${esc(p.addr)}${p.approx ? ' <span class="muted">(posição aproximada)</span>' : ""}</dd>` : ""}
@@ -170,8 +178,8 @@
   function pickCity(name) {
     const c = CITY[name];
     if (!c) { // cidade só presente nos dados (ex.: importados): voa para o primeiro lugar dela
-      const p = places.find((x) => x.city === name && pc(x) === state.country); if (!p) return;
-      state.city = name; state.q = ""; render(); map.flyTo([p.lat, p.lng], 13, { duration: 0.8 }); return;
+      const p = places.find((x) => x.city === name && pc(x) === state.country && hasPos(x));
+      state.city = name; state.q = ""; render(); if (p) map.flyTo([p.lat, p.lng], 13, { duration: 0.8 }); return;
     }
     setCountry(c.c || "py", false);
     state.city = ""; state.q = ""; $("#q").value = name; $("#sugg").hidden = true;
@@ -204,10 +212,16 @@
   const catOpts = CATS.map((c) => `<option value="${c}">${c[0].toUpperCase() + c.slice(1)}</option>`).join("");
   $("#cat").insertAdjacentHTML("beforeend", catOpts);
   $("#cat").onchange = (e) => { state.cat = e.target.value; render(); };
+  $("#types").onclick = (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    state.type = b.dataset.t;
+    document.querySelectorAll("#types button").forEach((x) => x.classList.toggle("on", x === b));
+    closeDetail(); render();
+  };
   $("#list").onclick = (e) => {
     const it = e.target.closest(".item"); if (!it) return;
     const p = places.find((x) => x.id == it.dataset.id), m = markers.get(p.id);
-    map.flyTo([p.lat, p.lng], 16, { duration: 0.7 }); if (m) layer.zoomToShowLayer(m, () => m.openPopup());
+    if (hasPos(p)) { map.flyTo([p.lat, p.lng], 16, { duration: 0.7 }); if (m) layer.zoomToShowLayer(m, () => m.openPopup()); }
     state.city = p.city; showDetail(p);
   };
 
@@ -244,19 +258,29 @@
   const open = () => modal.showModal();
   $("#btnAdd").onclick = open; $("#btnAdd2").onclick = open;
   $("#cancel").onclick = () => modal.close();
+  // loja online não tem cidade nem endereço: pede o país e o link
+  const syncType = () => {
+    const online = $("#fType").value === "online";
+    $("#fCityWrap").hidden = online; $("#fAddrWrap").hidden = online; $("#fCountryWrap").hidden = !online;
+    $("#fWeb").required = online;
+  };
+  $("#fType").onchange = syncType; syncType();
   // cadastro vai para a fila de revisão no Supabase; só aparece no mapa depois de aprovado
   $("#form").addEventListener("submit", async (e) => {
     e.preventDefault(); // mantém o formulário aberto se o envio falhar
-    const form = e.target, f = new FormData(form), city = CITY[f.get("city")];
+    const form = e.target, f = new FormData(form), type = f.get("type") || "fisico", online = type === "online";
+    const city = CITY[f.get("city")];
     if (f.get("site_url")) return; // campo-isca contra robôs
     if (!sbOn()) { toast("Cadastro ainda não está ativo. Fale com a gente no grupo do WhatsApp."); return; }
     const row = {
-      name: String(f.get("name") || "").trim().slice(0, 120), cat: f.get("cat"), city: f.get("city"),
-      country: city.c || "py", addr: String(f.get("addr") || "").trim().slice(0, 200) || null,
+      type, name: String(f.get("name") || "").trim().slice(0, 120), cat: f.get("cat"),
+      city: online ? "Online" : f.get("city"), country: online ? f.get("country") : city.c || "py",
+      addr: online ? null : String(f.get("addr") || "").trim().slice(0, 200) || null,
       coins: f.getAll("coin"), wa: String(f.get("wa") || "").trim().slice(0, 30) || null,
       web: String(f.get("web") || "").trim().slice(0, 200) || null,
-      lat: city.lat, lng: city.lng, // posição do centro da cidade; corrigida na revisão
-      note: "Cadastro enviado pela comunidade. Posição a confirmar.",
+      // física e pessoa: posição do centro da cidade, corrigida na revisão; online: sem posição
+      lat: online ? null : city.lat, lng: online ? null : city.lng,
+      note: online ? "Cadastro online enviado pela comunidade." : "Cadastro enviado pela comunidade. Posição a confirmar.",
     };
     try {
       const r = await sbFetch("places", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(row) });
@@ -272,7 +296,7 @@
       const r = await sbFetch("places?status=eq.approved&select=*&limit=1000");
       if (!r.ok) return;
       (await r.json()).forEach((x) => places.push({
-        id: "r" + x.id, country: x.country, name: x.name, cat: x.cat, city: x.city, addr: x.addr || "", coins: x.coins || [],
+        id: "r" + x.id, type: x.type || "fisico", country: x.country, name: x.name, cat: x.cat, city: x.city, addr: x.addr || "", coins: x.coins || [],
         nets: x.nets || [], wa: x.wa || "", web: x.web || undefined, lat: x.lat, lng: x.lng, verified: !!x.verified,
         note: x.note || undefined, src: "Cadastro da comunidade", approx: !x.verified,
       }));
@@ -289,6 +313,6 @@
   render();
   const m = location.hash.match(/c=([^&]+)/);
   if (m && CITY[decodeURIComponent(m[1])]) pickCity(decodeURIComponent(m[1]));
-  else map.fitBounds(L.latLngBounds(places.filter((p) => pc(p) === "py").map((p) => [p.lat, p.lng])).pad(0.15));
+  else map.fitBounds(L.latLngBounds(places.filter((p) => pc(p) === "py" && hasPos(p)).map((p) => [p.lat, p.lng])).pad(0.15));
   loadRemote();
 })();

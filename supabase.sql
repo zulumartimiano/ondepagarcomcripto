@@ -26,6 +26,11 @@ create table if not exists public.places (
   note        text check (char_length(note) <= 400)
 );
 
+-- tipo do cadastro: comércio físico, pessoa/autônomo ou loja/produto online
+-- (online não tem endereço: lat e lng ficam vazios e a cidade é "Online")
+alter table public.places add column if not exists type text not null default 'fisico'
+  check (type in ('fisico', 'pessoa', 'online'));
+
 alter table public.places enable row level security;
 
 -- permissões de tabela (projetos novos do Supabase não liberam nada por padrão);
