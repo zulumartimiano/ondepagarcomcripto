@@ -10,7 +10,7 @@
   const hasPos = (p) => p.lat != null && p.lng != null; // lugares online não têm posição no mapa
   const CITY = Object.fromEntries(CITIES.map((c) => [c.name, c]));
   // sem nenhuma moeda marcada o mapa mostra todos os lugares; marcar uma moeda filtra
-  const state = { coins: new Set(), cat: "", q: "", city: "", country: "py", type: "" };
+  const state = { coins: new Set(), cat: "", q: "", city: "", country: "", type: "" }; // country "" = Brasil e Paraguai juntos
   let places = PLACES.slice();
   const SB = window.SUPABASE || {};
   const sbOn = () => !!(SB.url && SB.key);
@@ -82,7 +82,7 @@
   function filtered() {
     const q = state.q.trim().toLowerCase();
     return places.filter((p) =>
-      pc(p) === state.country &&
+      (!state.country || pc(p) === state.country) &&
       (!state.type || ptype(p) === state.type) &&
       (!state.coins.size || isAtm(p) || p.coins.some((c) => state.coins.has(c))) && // caixas eletrônicos aparecem sempre
       (!state.cat || p.cat === state.cat) &&
@@ -115,7 +115,7 @@
   // trilha: Paraguai › Cidade › Lugar
   let current = null;
   function crumbs() {
-    const parts = [`<button data-a="country">${state.country === "br" ? "Brasil" : "Paraguai"}</button>`];
+    const parts = [`<button data-a="country">${{ br: "Brasil", py: "Paraguai" }[state.country] || "Brasil e Paraguai"}</button>`];
     if (state.city) parts.push(current ? `<button data-a="city">${esc(state.city)}</button>` : `<b>${esc(state.city)}</b>`);
     if (current) parts.push(`<b>${esc(current.name)}</b>`);
     $("#crumbs").innerHTML = parts.join(" › ");
@@ -151,7 +151,7 @@
   }
 
   function stats() {
-    const all = places.filter((p) => pc(p) === state.country && !isAtm(p)); // placar só de lugares que aceitam pagamento
+    const all = places.filter((p) => (!state.country || pc(p) === state.country) && !isAtm(p)); // placar só de lugares que aceitam pagamento
     const nU = all.filter((p) => p.coins.includes("USDT")).length;
     const nC = all.filter((p) => p.coins.includes("USDC")).length;
     const t = nU + nC || 1;
@@ -179,7 +179,7 @@
   function pickCity(name) {
     const c = CITY[name];
     if (!c) { // cidade só presente nos dados (ex.: importados): voa para o primeiro lugar dela
-      const p = places.find((x) => x.city === name && pc(x) === state.country && hasPos(x));
+      const p = places.find((x) => x.city === name && (!state.country || pc(x) === state.country) && hasPos(x));
       state.city = name; state.q = ""; render(); if (p) map.flyTo([p.lat, p.lng], 13, { duration: 0.8 }); return;
     }
     setCountry(c.c || "py", false);
@@ -231,7 +231,7 @@
     state.country = c; state.city = ""; state.q = ""; $("#q").value = ""; $("#sugg").hidden = true;
     document.querySelectorAll("#country button").forEach((x) => x.classList.toggle("on", x.dataset.c === c));
     closeDetail(); render();
-    if (fly) map.flyTo(c === "br" ? [-14.2, -51.9] : [-23.4, -57.4], c === "br" ? 4 : 7, { duration: 1 });
+    if (fly) map.flyTo(c === "br" ? [-14.2, -51.9] : c === "py" ? [-23.4, -57.4] : [-17, -54], c === "br" ? 4 : c === "py" ? 7 : 4, { duration: 1 });
   }
   $("#country").onclick = (e) => {
     const b = e.target.closest("button"); if (b) setCountry(b.dataset.c, true);
@@ -314,6 +314,6 @@
   render();
   const m = location.hash.match(/c=([^&]+)/);
   if (m && CITY[decodeURIComponent(m[1])]) pickCity(decodeURIComponent(m[1]));
-  else map.fitBounds(L.latLngBounds(places.filter((p) => pc(p) === "py" && hasPos(p)).map((p) => [p.lat, p.lng])).pad(0.15));
+  else map.fitBounds(L.latLngBounds(places.filter(hasPos).map((p) => [p.lat, p.lng])).pad(0.05));
   loadRemote();
 })();
