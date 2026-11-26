@@ -31,12 +31,14 @@ const horizontal = (texto, verde, anel, verdeMoeda, id) => page(1400, 360, "tran
 fs.writeFileSync(path.join(D, "_horizontal-escuro.html"), horizontal("#f2f2f4", "#26a17b", "#0a0a0c", "#26a17b", "h1"));
 fs.writeFileSync(path.join(D, "_horizontal-claro.html"), horizontal("#111114", "#1d8a68", "#f4f4f6", "#1d8a68", "h2"));
 
-// imagem para compartilhar o link (WhatsApp, redes): 1200x630
-fs.writeFileSync(path.join(D, "_og-image.html"), page(1200, 630, "#0a0a0c",
-  `<div style="position:absolute;inset:0;background:radial-gradient(700px 420px at 30% 40%,rgba(38,161,123,.22),transparent 70%),radial-gradient(600px 400px at 90% 90%,rgba(39,117,202,.2),transparent 70%)"></div>
-   <div style="position:absolute;left:80px;top:90px;right:80px;color:#f2f2f4">
-     <div style="display:flex;align-items:center;gap:26px">${icone(120, "#0a0a0c", "#26a17b", "o")}<div style="font:400 64px/1 'Instrument Serif',serif;color:#f2f2f4">ondepagar<span style="color:#26a17b">comcripto</span></div></div>
-     <div style="font:400 92px/1.04 'Instrument Serif',serif;margin-top:64px;letter-spacing:-1px">Onde pagar com <span style="color:#26a17b">USDT</span> e <span style="color:#5a9bea">USDC</span></div>
-     <div style="font:500 30px 'Geist',sans-serif;color:#a9a9b3;margin-top:34px">Mapa grátis de lugares que aceitam cripto · Brasil e Paraguai</div>
+// imagem para compartilhar o link: 1200x630, com TODO o conteúdo no quadrado central (600x600).
+// O Instagram e outros apps cortam as laterais, então nada importante pode ficar perto das bordas.
+fs.writeFileSync(path.join(D, "_og-image-2.html"), page(1200, 630, "#0a0a0c",
+  `<div style="position:absolute;inset:0;background:radial-gradient(520px 520px at 50% 45%,rgba(38,161,123,.24),transparent 70%),radial-gradient(420px 420px at 82% 88%,rgba(39,117,202,.2),transparent 70%),radial-gradient(420px 420px at 18% 12%,rgba(39,117,202,.12),transparent 70%)"></div>
+   <div style="position:absolute;left:300px;width:600px;top:0;height:630px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#f2f2f4">
+     ${icone(104, "#0a0a0c", "#26a17b", "o")}
+     <div style="font:400 40px/1 'Instrument Serif',serif;margin-top:18px;color:#f2f2f4">ondepagar<span style="color:#26a17b">comcripto</span></div>
+     <div style="font:400 78px/1.02 'Instrument Serif',serif;margin-top:30px;letter-spacing:-1px">Onde pagar<br>com <span style="color:#26a17b">USDT</span><br>e <span style="color:#5a9bea">USDC</span></div>
+     <div style="font:500 25px 'Geist',sans-serif;color:#a9a9b3;margin-top:28px">Mapa grátis · Brasil e Paraguai</div>
    </div>`));
 console.log("ok");
