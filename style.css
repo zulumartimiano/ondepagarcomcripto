@@ -228,3 +228,7 @@ h1{font-size:20px;margin:0 0 5px}
 /* "Ajude o site" na cor do USDC */
 .help-card{background:var(--usdc);border-color:var(--usdc);color:#fff}
 .help-card:hover{filter:brightness(1.1);border-color:var(--usdc)}
+
+/* aviso dos lugares só com Bitcoin */
+.hint{background:#f7931a;color:#1d1200;border:0;border-radius:999px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer}
+.hint:hover{filter:brightness(1.08)}

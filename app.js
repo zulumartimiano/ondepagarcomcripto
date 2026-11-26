@@ -99,8 +99,19 @@
     $("#list").innerHTML = list.slice(0, MAX).map((p) =>`<div class="item" data-id="${p.id}">
       <b>${esc(p.name)}</b><span class="meta">${esc(p.cat)} · ${esc(p.city)}${p.verified ? ' · <span class="ok">✔</span>' : ""}</span>
       <div class="coins">${tags(p)}${vids(p).length ? `<span class="tag vtag">▶ ${vids(p).length} vídeo${vids(p).length > 1 ? "s" : ""}</span>` : ""}</div></div>`).join("") || '<p class="muted">Nenhum lugar encontrado com esses filtros.</p>';
-    stats(); crumbs();
+    stats(); crumbs(); btcHint();
   }
+
+  // aviso: lugares só com Bitcoin ficam escondidos enquanto o botão BTC está desligado
+  function btcHint() {
+    const h = $("#btcHint");
+    const n = state.coins.has("BTC") ? 0 : places.filter((p) => pc(p) === state.country && !isAtm(p) && p.coins.length === 1 && p.coins[0] === "BTC").length;
+    h.hidden = !n;
+    if (n) h.textContent = `+${n.toLocaleString("pt-BR")} lugares só com Bitcoin · mostrar`;
+  }
+  $("#btcHint").onclick = () => {
+    state.coins.add("BTC"); document.querySelector('#chips [data-c="BTC"]').classList.add("on"); render();
+  };
 
   // trilha: Paraguai › Cidade › Lugar
   let current = null;
