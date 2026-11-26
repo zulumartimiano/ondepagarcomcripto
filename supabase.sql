@@ -28,6 +28,10 @@ create table if not exists public.places (
 
 alter table public.places enable row level security;
 
+-- permissões de tabela (projetos novos do Supabase não liberam nada por padrão);
+-- as regras abaixo (RLS) continuam limitando o que cada visitante pode ler e enviar
+grant select, insert on public.places to anon, authenticated;
+
 -- visitantes só enxergam o que foi aprovado
 drop policy if exists "ler aprovados" on public.places;
 create policy "ler aprovados" on public.places
