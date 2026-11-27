@@ -256,7 +256,10 @@
   const modal = $("#modal");
   $("#fCity").innerHTML = CITIES.map((c) => `<option>${c.name}</option>`).join("");
   $("#fCat").innerHTML = catOpts;
-  const open = () => modal.showModal();
+  // antes do cadastro, um aviso pedindo ajuda para manter o site no ar
+  const helpModal = $("#helpmodal");
+  const open = () => helpModal.showModal();
+  $("#helpGo").onclick = () => { helpModal.close(); modal.showModal(); };
   $("#btnAdd").onclick = open; $("#btnAdd2").onclick = open;
   $("#cancel").onclick = () => modal.close();
   // loja online não tem cidade nem endereço: pede o país e o link

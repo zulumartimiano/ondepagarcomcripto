@@ -262,3 +262,6 @@ h1{font-size:20px;margin:0 0 5px}
 
 /* nome: completo no computador, só as iniciais OPC no celular */
 .brand .ini{display:none;font-size:26px;letter-spacing:.5px}
+
+.help-txt{font-size:14px;line-height:1.5;margin:0 0 14px}
+#helpmodal .help-card{margin:0 0 16px}
